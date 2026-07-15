@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=OpenCode Go Usage Float
+Comment=Floating OpenCode Go usage widget
+Exec=bash -c 'export OPENCODE_AUTH=$(grep "^OPENCODE_AUTH=" ~/.config/environment.d/99-opencode-go-float-widget.conf 2>/dev/null | cut -d= -f2-); exec /home/kali/.local/bin/opencode_go_float_widget.py'
+Terminal=false
+X-GNOME-Autostart-enabled=true

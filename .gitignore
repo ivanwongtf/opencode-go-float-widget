@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.env
+.env
+
+# Project-specific: never commit auth cookie
+*.cookie
+99-opencode-go-float-widget.conf
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Docs assets (keep placeholder, ignore large files)
+docs/*.xcf
+docs/*.psd
