@@ -1,6 +1,8 @@
 # opencode-go-float-widget
 
 A small, floating GTK3 desktop widget that shows your **OpenCode Go** usage percentages — rolling, weekly, and monthly — in a semi-transparent, always-on-top window at the bottom-right of your screen.
+<img width="410" height="71" alt="image" src="https://github.com/user-attachments/assets/cccfca42-ae2f-42e2-868a-8fee0c6c7093" />
+
 
 ## Features
 
