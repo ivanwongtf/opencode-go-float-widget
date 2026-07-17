@@ -4,8 +4,6 @@
 # dependencies = ["PySide6"]
 # ///
 
-"""Floating desktop widget for OpenCode Go usage (macOS PySide6 port)."""
-
 from __future__ import annotations
 
 import json
@@ -56,7 +54,6 @@ def _badge_stylesheet(bg: str, fg: str) -> str:
 
 
 def throttled_browser_prompt() -> bool:
-    """Open Go page in default browser, throttled to once per cooldown."""
     now = int(time.time())
     if STATE_FILE.exists():
         try:
@@ -80,7 +77,6 @@ def throttled_browser_prompt() -> bool:
 
 
 def open_browser() -> None:
-    """Open Go page in default browser (unthrottled)."""
     try:
         subprocess.Popen(
             ["open", core.go_url()],
@@ -222,10 +218,7 @@ class GoUsageWidget(QWidget):
         y = screen.bottom() - size.height() - EDGE_MARGIN_PX
         self.move(x, y)
 
-    # ── Refresh logic ──────────────────────────────────────────────────────
-
     def _refresh(self) -> None:
-        """Fetch + parse + update labels. Runs on every tick."""
         if not os.environ.get(core.WORKSPACE_ENV_VAR):
             self._show_error(
                 "Workspace needed",
@@ -285,7 +278,6 @@ class GoUsageWidget(QWidget):
         self.status_label.setText(f"updated {time.strftime('%H:%M:%S')}")
 
     def _update_badge(self, key: str, pct: int) -> None:
-        """Update a single badge label + color."""
         badge = self.badges[key]
         badge.setText(f"{pct}%")
         color_class = core.color_class_for(pct)
@@ -307,14 +299,18 @@ class GoUsageWidget(QWidget):
         self.setToolTip("")
 
 
-# ── Entry point ────────────────────────────────────────────────────────────
-
 
 def main() -> None:
     app = QApplication([])
     app.setQuitOnLastWindowClosed(True)
     widget = GoUsageWidget()
     widget.show()
+    try:
+        import objc
+
+        objc.objc_object(c_void_p=widget.winId()).window().setLevel_(3)
+    except Exception:
+        pass
     app.exec()
 
 
