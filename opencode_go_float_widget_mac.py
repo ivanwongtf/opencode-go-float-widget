@@ -211,9 +211,8 @@ class GoUsageWidget(QWidget):
 
     def _position_bottom_right(self) -> None:
         screen = QApplication.primaryScreen().availableGeometry()
-        size = self.size()
-        x = screen.right() - size.width() - EDGE_MARGIN_PX
-        y = screen.bottom() - size.height() - EDGE_MARGIN_PX
+        x = screen.right() - self.width() - EDGE_MARGIN_PX
+        y = screen.bottom() - self.height() - EDGE_MARGIN_PX
         self.move(x, y)
 
     def _refresh(self) -> None:
@@ -308,6 +307,7 @@ def main() -> None:
         ns_window = objc.objc_object(c_void_p=widget.winId()).window()
         ns_window.setLevel_(25)
         ns_window.setCollectionBehavior_(1 | 16)
+        ns_window.setHidesOnDeactivate_(False)
     except Exception:
         pass
     app.exec()
