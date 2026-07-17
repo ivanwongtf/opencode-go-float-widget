@@ -4,6 +4,8 @@ __pycache__/
 *.egg-info/
 *.env
 .env
+.venv/
+venv/
 
 # Project-specific: never commit auth cookie
 *.cookie
@@ -15,6 +17,9 @@ __pycache__/
 *.swp
 *.swo
 .DS_Store
+
+# OpenCode framework state
+.omo/
 
 # Docs assets (keep placeholder, ignore large files)
 docs/*.xcf

@@ -1,6 +1,6 @@
 # OpenCode Go Float Widget
 
-A small, floating GTK3 desktop widget that shows your **OpenCode Go** usage percentages — rolling, weekly, and monthly — in a semi-transparent, always-on-top window at the bottom-right of your screen.
+A small, floating desktop widget that shows your **OpenCode Go** usage percentages — rolling, weekly, and monthly — in a semi-transparent, always-on-top window at the bottom-right of your screen.
 
 <img width="410" height="71" alt="image" src="https://github.com/user-attachments/assets/cccfca42-ae2f-42e2-868a-8fee0c6c7093" />
 
@@ -17,10 +17,18 @@ A small, floating GTK3 desktop widget that shows your **OpenCode Go** usage perc
 
 ## Requirements
 
+- Python 3.9+
+
+### Linux
+
 - Linux with X11
-- Python 3
 - GTK 3
 - PyGObject
+
+### macOS
+
+- macOS 11+
+- PySide6
 
 ## Install
 
@@ -32,6 +40,8 @@ cd opencode-go-float-widget
 ```
 
 ### 2. Install dependencies
+
+#### Linux
 
 On Debian / Ubuntu / Kali:
 
@@ -46,51 +56,87 @@ Or with pip:
 pip install -r requirements.txt
 ```
 
-### 3. Set your OpenCode auth cookie
-
-Get the `auth=Fe26.2**…` cookie value from your browser after logging into OpenCode, then export it:
+#### macOS
 
 ```bash
-export OPENCODE_AUTH='auth=Fe26.2**...'
+pip install -r requirements_mac.txt
 ```
 
-### 4. Run
+### 3. Run the installer
+
+The installer will prompt for your OpenCode **Workspace ID** and **auth cookie**, save them securely, and set up autostart.
+
+#### Linux
 
 ```bash
+./install_linux.sh
+```
+
+#### macOS
+
+```bash
+./install_mac.sh
+```
+
+### 4. Run manually
+
+If you did not enable autostart, or want to run without installing:
+
+#### Linux
+
+```bash
+export OPENCODE_WORKSPACE_ID='wrk_...'
+export OPENCODE_AUTH='auth=Fe26.2**...'
 ./opencode_go_float_widget.py
+```
+
+#### macOS
+
+```bash
+export OPENCODE_WORKSPACE_ID='wrk_...'
+export OPENCODE_AUTH='auth=Fe26.2**...'
+./opencode_go_float_widget_mac.py
 ```
 
 ## Autostart on login
 
-```bash
-# Copy the .desktop file
-cp opencode-go-float-widget.desktop ~/.config/autostart/
+Both installers set up autostart automatically:
 
-# Save your auth cookie securely
-mkdir -p ~/.config/environment.d
-chmod 700 ~/.config/environment.d
-cat > ~/.config/environment.d/99-opencode-go-float-widget.conf <<'EOF'
-OPENCODE_AUTH=auth=Fe26.2**...
-EOF
-chmod 600 ~/.config/environment.d/99-opencode-go-float-widget.conf
-```
+- **Linux**: creates `~/.config/autostart/opencode-go-float-widget.desktop` and reads credentials from `~/.config/environment.d/99-opencode-go-float-widget.conf`.
+- **macOS**: creates a LaunchAgent at `~/Library/LaunchAgents/com.opencode.go-float-widget.plist` and reads credentials from `~/.config/opencode-go-float-widget/env` via a wrapper script.
 
-The `.desktop` file reads the cookie from `~/.config/environment.d/99-opencode-go-float-widget.conf` at startup.
+To update credentials later, just re-run the installer.
 
 ## Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `OPENCODE_WORKSPACE_ID` | OpenCode workspace ID | *(required)* |
 | `OPENCODE_AUTH` | Full `auth=…` cookie value | *(required)* |
-| `OPENCODE_WORKSPACE_ID` | OpenCode workspace ID | `wrk_01KRDRXQXY5KDH20YM4A69TD61` |
 | `OPENCODE_REFRESH_SECONDS` | Refresh interval in seconds | `60` |
 
 ## Uninstall
+
+### Linux
 
 ```bash
 rm ~/.config/autostart/opencode-go-float-widget.desktop
 rm ~/.config/environment.d/99-opencode-go-float-widget.conf
 rm -rf ~/.local/state/opencode-go-usage-indicator
+rm ~/.local/bin/opencode_go_float_widget.py
+```
+
+### macOS
+
+```bash
+launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.opencode.go-float-widget.plist
+rm ~/Library/LaunchAgents/com.opencode.go-float-widget.plist
+rm -rf ~/.config/opencode-go-float-widget
+rm -rf ~/Library/Application\ Support/opencode-go-usage-indicator
+rm -rf ~/Library/Logs/opencode-go-float-widget.log
+rm ~/.local/bin/opencode_go_float_widget_mac.py
+rm ~/.local/bin/core.py
+rm ~/.local/bin/opencode-go-float-widget.wrapper.sh
 ```
 
 ## License

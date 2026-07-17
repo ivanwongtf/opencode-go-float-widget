@@ -33,13 +33,17 @@ from gi.repository import Gdk, GLib, Gtk  # noqa: E402
 
 # ── Constants ──────────────────────────────────────────────────────────────
 
-WORKSPACE_ID = os.environ.get(
-    "OPENCODE_WORKSPACE_ID", "wrk_01KRDRXQXY5KDH20YM4A69TD61"
-)
 BASE_URL = "https://opencode.ai/workspace"
-GO_URL = f"{BASE_URL}/{WORKSPACE_ID}/go"
 
 AUTH_ENV_VAR = "OPENCODE_AUTH"
+WORKSPACE_ENV_VAR = "OPENCODE_WORKSPACE_ID"
+
+def _go_url():
+    """Build the Go page URL from the environment."""
+    workspace_id = os.environ.get(WORKSPACE_ENV_VAR)
+    if not workspace_id:
+        raise ValueError(f"{WORKSPACE_ENV_VAR} environment variable not set")
+    return f"{BASE_URL}/{workspace_id}/go"
 REFRESH_INTERVAL_SECONDS = int(os.environ.get("OPENCODE_REFRESH_SECONDS", "60"))
 THROTTLE_COOLDOWN_SECONDS = 600  # 10 minutes
 STATE_DIR = Path.home() / ".local" / "state" / "opencode-go-usage-indicator"
@@ -130,16 +134,19 @@ def fetch():
     """Fetch the Go page HTML.
 
     Raises:
-        ValueError:  If OPENCODE_AUTH is unset or empty.
+        ValueError:  If OPENCODE_WORKSPACE_ID or OPENCODE_AUTH is unset.
         urllib.error.URLError:  Network-level failure.
         urllib.error.HTTPError:  Non-2xx response.
     """
+    workspace_id = os.environ.get(WORKSPACE_ENV_VAR)
+    if not workspace_id:
+        raise ValueError(f"{WORKSPACE_ENV_VAR} environment variable not set")
     auth_cookie = os.environ.get(AUTH_ENV_VAR)
     if not auth_cookie:
         raise ValueError(f"{AUTH_ENV_VAR} environment variable not set")
 
     req = urllib.request.Request(
-        GO_URL,
+        _go_url(),
         headers={
             "Cookie": auth_cookie,
             "User-Agent": USER_AGENT,
@@ -236,6 +243,10 @@ def check_auth_failure(html):
 
 def throttled_browser_prompt():
     """Open Go page in default browser, throttled to once per cooldown."""
+    try:
+        url = _go_url()
+    except ValueError:
+        return False
     now = int(time.time())
     if STATE_FILE.exists():
         try:
@@ -248,7 +259,7 @@ def throttled_browser_prompt():
     STATE_FILE.write_text(str(now))
     try:
         subprocess.Popen(
-            ["xdg-open", GO_URL],
+            ["xdg-open", url],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
@@ -260,8 +271,12 @@ def throttled_browser_prompt():
 def open_browser():
     """Open Go page in default browser (unthrottled)."""
     try:
+        url = _go_url()
+    except ValueError:
+        return
+    try:
         subprocess.Popen(
-            ["xdg-open", GO_URL],
+            ["xdg-open", url],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
@@ -504,6 +519,16 @@ class GoUsageWidget(Gtk.Window):
 
     def _refresh(self):
         """Fetch + parse + update labels. Runs on every tick."""
+        if not os.environ.get(WORKSPACE_ENV_VAR):
+            self._show_error(
+                "Workspace needed",
+                f"Set the {WORKSPACE_ENV_VAR} environment variable to your "
+                f"OpenCode workspace ID (e.g. wrk_01KXNRH9RH9JS746CTPEV1R7NA).",
+            )
+            self._set_all_badges_grey()
+            self.status_label.set_text("no workspace")
+            return True
+
         if not os.environ.get(AUTH_ENV_VAR):
             self._show_error(
                 "Login needed",
@@ -518,11 +543,11 @@ class GoUsageWidget(Gtk.Window):
         try:
             html = fetch()
         except urllib.error.URLError:
-            self._show_error("offline", f"Could not reach {GO_URL}")
+            self._show_error("offline", f"Could not reach {_go_url()}")
             self.status_label.set_text("offline")
             return True
         except (OSError, ValueError):
-            self._show_error("offline", f"Could not reach {GO_URL}")
+            self._show_error("offline", f"Could not reach {_go_url()}")
             self.status_label.set_text("error")
             return True
 
@@ -591,7 +616,7 @@ class GoUsageWidget(Gtk.Window):
 
 
 def main():
-    w = GoUsageWidget()
+    GoUsageWidget()
     Gtk.main()
 
 
