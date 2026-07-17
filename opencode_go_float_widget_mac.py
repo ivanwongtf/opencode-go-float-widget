@@ -90,8 +90,6 @@ def open_browser() -> None:
 
 
 class GoUsageWidget(QWidget):
-    """Floating always-on-top widget showing OpenCode Go usage."""
-
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("OpenCode Go Usage")
@@ -280,8 +278,7 @@ class GoUsageWidget(QWidget):
     def _update_badge(self, key: str, pct: int) -> None:
         badge = self.badges[key]
         badge.setText(f"{pct}%")
-        color_class = core.color_class_for(pct)
-        badge.setStyleSheet(_badge_stylesheet(*_BADGE_COLORS[color_class]))
+        badge.setStyleSheet(_badge_stylesheet(*_BADGE_COLORS[core.color_class_for(pct)]))
 
     def _set_all_badges_grey(self) -> None:
         for badge in self.badges.values():
@@ -308,7 +305,9 @@ def main() -> None:
     try:
         import objc
 
-        objc.objc_object(c_void_p=widget.winId()).window().setLevel_(3)
+        ns_window = objc.objc_object(c_void_p=widget.winId()).window()
+        ns_window.setLevel_(25)
+        ns_window.setCollectionBehavior_(1 | 16)
     except Exception:
         pass
     app.exec()
